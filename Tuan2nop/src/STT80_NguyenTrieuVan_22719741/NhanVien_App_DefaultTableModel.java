@@ -25,7 +25,7 @@ import javax.swing.table.DefaultTableModel;
 import STT80_NguyenTrieuVan_22719741.NhanVien;
 import STT80_NguyenTrieuVan_22719741.NhanVien_Collection;
 
-public class NhanVien_App_DefaultTableModel extends JFrame implements ActionListener, MouseListener, KeyListener {
+public class NhanVien_App_DefaultTableModel extends JFrame implements ActionListener, MouseListener{
 
 	/**
 	 * 
@@ -182,10 +182,13 @@ public class NhanVien_App_DefaultTableModel extends JFrame implements ActionList
 		
 		*/
 		
+		//LUOC 10
+		/*
 		// Định dạng tiền lương $
 		DecimalFormat format = new DecimalFormat("#,##0 $");
 		CurrencyRenderer currencyRenderer = new CurrencyRenderer(format);
 		table.getColumnModel().getColumn(5).setCellRenderer(currencyRenderer);
+		*/
 
 		Box vbox = Box.createVerticalBox();
 		vbox.add(hbox);
@@ -367,8 +370,17 @@ public class NhanVien_App_DefaultTableModel extends JFrame implements ActionList
 				NhanVien nv = listNV.timKiem(maNVTimKiem);
 				if (nv != null) {
 					hienThiThongTinNV(nv);
-					modelNhanVien.addRow(new Object[] { nv.getMaNV(), nv.getHo(), nv.getTen(), nv.isPhai() == true ? "Nam" : "Nữ",
-					nv.getTuoi(), nv.getLuong() });
+					
+					focusbang(nv);
+					//LUOC 7
+					/*
+					int rowIndex = timViTriDong(maNVTimKiem);
+					if (rowIndex != -1) {
+						table.setRowSelectionInterval(rowIndex, rowIndex);
+						textNhapMa.setText("");
+//						table.scrollRectToVisible(table.getCellRect(rowIndex, 0, true));
+					}*/
+					
 					
 				} else {
 					JOptionPane.showMessageDialog(this, "Không tìm thấy nhân viên có mã số " + maNVTimKiem);
@@ -380,12 +392,9 @@ public class NhanVien_App_DefaultTableModel extends JFrame implements ActionList
 		        // Lưu toàn bộ danh sách nhân viên vào file
 		        if (luuTru.LuuFile(listNV.getDsNV(), FILENAME)) {
 		            JOptionPane.showMessageDialog(this, "Dữ liệu đã được lưu vào file: " + FILENAME);
-		        } else {
-		            JOptionPane.showMessageDialog(this, "Lỗi khi lưu dữ liệu!");
 		        }
 		    } catch (Exception ex) {
-		        JOptionPane.showMessageDialog(this, "Lỗi khi lưu dữ liệu: " + ex.getMessage());
-		        ex.printStackTrace();
+
 		    }
 		}
 		
@@ -412,7 +421,6 @@ public class NhanVien_App_DefaultTableModel extends JFrame implements ActionList
 		textHo.setText("");
 		textTen.setText("");
 		textTuoi.setText("");
-		group.clearSelection();
 		textLuong.setText("");
 		textMaNV.requestFocus();
 		textNhapMa.setText("");
@@ -422,7 +430,15 @@ public class NhanVien_App_DefaultTableModel extends JFrame implements ActionList
 	private void hienThiDanhSachNV() {
 		// Sắp xếp lại danh sách trước khi hiển thị
 	    Collections.sort(listNV.getDsNV(), Comparator.comparing(NhanVien::getMaNV));
-		// Xóa toàn bộ dòng trên bảng
+	    
+	    
+	 // Gọi trực tiếp phương thức tạo model từ NhanVien_Collection
+	    modelNhanVien = listNV.DocDuLieuTuArrayListVaoModel();
+	    
+	    // Cập nhật model cho bảng (JTable)
+	    table.setModel(modelNhanVien);
+	    
+	    /*
 		modelNhanVien.setRowCount(0);
 		ArrayList<NhanVien> dsNV = listNV.getDsNV();
 		// Thêm từng NV vào bảng
@@ -430,8 +446,12 @@ public class NhanVien_App_DefaultTableModel extends JFrame implements ActionList
 			modelNhanVien.addRow(new Object[] { nv.getMaNV(), nv.getHo(), nv.getTen(),
 					nv.isPhai() == true ? "Nam" : "Nữ", nv.getTuoi(), nv.getLuong() });
 		}
+		
+		*/
 	}
 
+	//LUOC 9
+	/*
 	private int timViTriDong(String maNV) {
 		for (int i = 0; i < modelNhanVien.getRowCount(); i++) {
 			String maNVTable = modelNhanVien.getValueAt(i, 0).toString();
@@ -441,7 +461,11 @@ public class NhanVien_App_DefaultTableModel extends JFrame implements ActionList
 		}
 		return -1;
 	}
-
+	*/
+	
+	
+	//LUOC 10
+	/*
 	private class CurrencyRenderer extends DefaultTableCellRenderer {
 		private static final long serialVersionUID = 1L;
 		private final DecimalFormat format;
@@ -460,59 +484,58 @@ public class NhanVien_App_DefaultTableModel extends JFrame implements ActionList
 			super.setValue(value);
 		}
 	}
+	*/
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		int row = table.getSelectedRow();
-	    if (row != -1) { 
-	        String maNV = modelNhanVien.getValueAt(row, 0).toString();
-	        NhanVien nv = listNV.timKiem(maNV);
-	        if (nv != null) {
-	            hienThiThongTinNV(nv);
-	        }
-	    }
+	    String maNV = modelNhanVien.getValueAt(row, 0).toString();
+	    NhanVien nv = listNV.timKiem(maNV);
+	    hienThiThongTinNV(nv);
+
 	}
 
 	
 
 	public class LuuTru {
-	    
-	    // Đọc đối tượng từ file
+
 	    public Object DocFile(String filePath) {
 	        File file = new File(filePath);
 	        if (!file.exists()) {
-	            System.out.println("File không tồn tại: " + filePath);
+	            //System.out.println("File không tồn tại: " + filePath);
 	            return null;
 	        }
 
-	        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
-	            return ois.readObject();  // Đọc đối tượng từ file
+	        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+	            return ois.readObject();
 	        } catch (IOException | ClassNotFoundException e) {
-	            System.err.println("Lỗi khi đọc file: " + e.getMessage());
-	            e.printStackTrace();
+	            //System.err.println("Lỗi khi đọc file: " + e.getMessage());
 	        }
 	        return null;
 	    }
 
-	    // Lưu đối tượng vào file
 	    public boolean LuuFile(Object obj, String filePath) {
-	        // Kiểm tra xem thư mục "data" có tồn tại không, nếu không thì tạo
 	        File folder = new File("data");
-	        if (!folder.exists()) {
-	            folder.mkdirs();  // Tạo thư mục nếu chưa tồn tại
-	        }
+	        if (!folder.exists()) 
+	        	folder.mkdirs();
 
 	        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
-	            oos.writeObject(obj);  // Ghi đối tượng vào file
-	            oos.flush();
+	            oos.writeObject(obj);
 	            return true;
 	        } catch (IOException e) {
-	            System.err.println("Lỗi khi lưu file: " + e.getMessage());
-	            e.printStackTrace();
+	            //System.err.println("Lỗi khi lưu file: " + e.getMessage());
 	        }
 	        return false;
 	    }
 	}
+	
+	private void focusbang( NhanVien nv) {
+		
+		modelNhanVien.setRowCount(0);
+		modelNhanVien.addRow(new Object[] { nv.getMaNV(), nv.getHo(), nv.getTen(), nv.isPhai() == true ? "Nam" : "Nữ",
+		nv.getTuoi(), nv.getLuong() });
+	}
+
 
 
 	@Override
@@ -539,23 +562,4 @@ public class NhanVien_App_DefaultTableModel extends JFrame implements ActionList
 
 	}
 
-	@Override
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-			btTim.doClick();
-		}
-
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
-
-	}
 }
